@@ -1,0 +1,167 @@
+
+# 【agent_project数据库完整结构说明】
+## 适用场景
+请基于以下数据库结构，分析业务需求、编写SQL查询、理解数据关系，要求：
+1. 所有SQL语句需适配PostgreSQL语法
+2. 优先使用字段注释中的业务含义理解字段用途
+3. 涉及多表关联时，需明确说明关联字段和关联逻辑
+4. 输出SQL时需包含完整的模式名（如public.表名）
+
+## 数据库基础信息
+- 数据库名：agent_project
+- 数据库类型：PostgreSQL
+- 主机：111778qb4bq84.vicp.fun
+- 端口：17769
+- 用户名：postgreRoot
+- 数据库密码lml20050523
+- 字符编码：UTF-8（支持中文注释）
+
+## 完整表结构详情
+
+### 模式（Schema）：public
+
+  #### 表名：agent_task
+     表注释：Agent任务执行表（管理用户发起的数据分析任务生命周期）
+     字段详情：
+       - task_id | 类型：bigint | 主键：是 | 可空：NO | 默认值：nextval('agent_task_task_id_seq'::regclass) | 注释：任务主键ID
+       - user_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：关联用户ID（外键：user.id）
+       - chat_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：关联对话ID（外键：user_chat.chat_id，任务从对话发起）
+       - task_name | 类型：character varying(255) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：任务名称（如“分析2024低信用对手方交易频次前20名”）
+       - task_status | 类型：smallint | 主键：否 | 可空：NO | 默认值：0 | 注释：任务状态：0-待执行，1-执行中，2-执行完成，3-执行失败
+       - source_id | 类型：bigint | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：关联数据源ID（外键：user_data_source.source_id，任务依赖的数据源）
+       - start_time | 类型：timestamp without time zone | 主键：否 | 可空：NO | 默认值：now() | 注释：任务开始时间
+       - end_time | 类型：timestamp without time zone | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：任务结束时间
+       - error_msg | 类型：text | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：失败原因（仅task_status=3时有值）
+       - total_steps | 类型：integer | 主键：否 | 可空：YES | 默认值：0 | 注释：任务总步骤数（如“调用run_code→修正代码→调用visualize”共3步）
+       - current_step | 类型：integer | 主键：否 | 可空：YES | 默认值：0 | 注释：当前执行步骤（用于前端进度展示，如“2/3”）
+
+  #### 表名：agent_tool_call_log
+     表注释：Agent工具调用日志表（追踪run_code/visualize等工具执行详情）
+     字段详情：
+       - log_id | 类型：bigint | 主键：是 | 可空：NO | 默认值：nextval('agent_tool_call_log_log_id_seq'::regclass) | 注释：无字段注释
+       - user_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - chat_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - record_id | 类型：bigint | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - tool_name | 类型：character varying(50) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - tool_input | 类型：text | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - execution_status | 类型：smallint | 主键：否 | 可空：NO | 默认值：0 | 注释：无字段注释
+       - execution_result | 类型：text | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - error_info | 类型：text | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - start_time | 类型：timestamp without time zone | 主键：否 | 可空：NO | 默认值：now() | 注释：无字段注释
+       - end_time | 类型：timestamp without time zone | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+
+  #### 表名：model_result_file
+     表注释：模型生成结果文件表
+     字段详情：
+       - file_id | 类型：bigint | 主键：是 | 可空：NO | 默认值：nextval('model_result_file_file_id_seq'::regclass) | 注释：无字段注释
+       - record_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - user_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - file_name | 类型：character varying(255) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - file_type | 类型：character varying(50) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - file_path | 类型：character varying(512) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - file_size | 类型：bigint | 主键：否 | 可空：YES | 默认值：0 | 注释：无字段注释
+       - file_size_str | 类型：character varying(20) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - download_count | 类型：integer | 主键：否 | 可空：NO | 默认值：0 | 注释：无字段注释
+       - create_time | 类型：timestamp without time zone | 主键：否 | 可空：NO | 默认值：now() | 注释：无字段注释
+
+  #### 表名：rag_knowledge
+     表注释：RAG知识条目表（存储RAG知识库中的具体知识内容，支持相似性去重）
+     字段详情：
+       - knowledge_id | 类型：bigint | 主键：是 | 可空：NO | 默认值：nextval('rag_knowledge_knowledge_id_seq'::regclass) | 注释：无字段注释
+       - user_id | 类型：bigint | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - knowledge_content | 类型：text | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - knowledge_type | 类型：character varying(20) | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - write_time | 类型：timestamp without time zone | 主键：否 | 可空：YES | 默认值：now() | 注释：无字段注释
+       - is_expired | 类型：smallint | 主键：否 | 可空：YES | 默认值：0 | 注释：无字段注释
+       - faiss | 类型：bytea | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - pkl | 类型：bytea | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+
+  #### 表名：think_record
+     表注释：无表注释
+     字段详情：
+       - think_id | 类型：bigint | 主键：是 | 可空：NO | 默认值：nextval('think_record_think_id_seq'::regclass) | 注释：无字段注释
+       - user_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - record_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - chat_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - think_process | 类型：jsonb | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - create_at | 类型：timestamp without time zone | 主键：否 | 可空：YES | 默认值：now() | 注释：无字段注释
+
+  #### 表名：user
+     表注释：用户信息表（登录注册核心）
+     字段详情：
+       - id | 类型：bigint | 主键：是 | 可空：NO | 默认值：nextval('user_id_seq'::regclass) | 注释：无字段注释
+       - username | 类型：character varying(50) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - password | 类型：character varying(100) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - phone | 类型：character varying(11) | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - nickname | 类型：character varying(50) | 主键：否 | 可空：YES | 默认值：''::character varying | 注释：无字段注释
+       - create_time | 类型：timestamp without time zone | 主键：否 | 可空：NO | 默认值：now() | 注释：无字段注释
+       - update_time | 类型：timestamp without time zone | 主键：否 | 可空：NO | 默认值：now() | 注释：无字段注释
+
+  #### 表名：user_chat
+     表注释：用户对话表（多轮对话列表）
+     字段详情：
+       - chat_id | 类型：bigint | 主键：是 | 可空：NO | 默认值：nextval('user_chat_chat_id_seq'::regclass) | 注释：无字段注释
+       - user_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - chat_title | 类型：character varying(100) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - last_msg_content | 类型：text | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - msg_count | 类型：integer | 主键：否 | 可空：YES | 默认值：0 | 注释：无字段注释
+       - is_delete | 类型：smallint | 主键：否 | 可空：NO | 默认值：0 | 注释：无字段注释
+       - create_time | 类型：timestamp without time zone | 主键：否 | 可空：NO | 默认值：now() | 注释：无字段注释
+       - update_time | 类型：timestamp without time zone | 主键：否 | 可空：NO | 默认值：now() | 注释：无字段注释
+       - delete_time | 类型：timestamp without time zone | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+
+  #### 表名：user_chat_record
+     表注释：用户对话记录表（多轮对话详情）
+     字段详情：
+       - record_id | 类型：bigint | 主键：是 | 可空：NO | 默认值：nextval('user_chat_record_record_id_seq'::regclass) | 注释：无字段注释
+       - chat_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - user_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - role | 类型：character varying(20) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - content | 类型：text | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - create_time | 类型：timestamp without time zone | 主键：否 | 可空：NO | 默认值：now() | 注释：无字段注释
+
+  #### 表名：user_data_source
+     表注释：用户数据源表（管理用户上传的所有原始文件，支持对话隔离、所有文件可被Agent解析）
+     字段详情：
+       - source_id | 类型：bigint | 主键：是 | 可空：NO | 默认值：nextval('user_data_source_source_id_seq'::regclass) | 注释：无字段注释
+       - user_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - chat_id | 类型：bigint | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - record_id | 类型：bigint | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - source_name | 类型：character varying(100) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - source_type | 类型：character varying(20) | 主键：否 | 可空：NO | 默认值：'local_file'::character varying | 注释：无字段注释
+       - source_purpose | 类型：character varying(20) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - file_path | 类型：character varying(512) | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - db_config | 类型：jsonb | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - file_size | 类型：bigint | 主键：否 | 可空：YES | 默认值：0 | 注释：无字段注释
+       - file_size_str | 类型：character varying(20) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - file_ext | 类型：character varying(10) | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - is_valid | 类型：smallint | 主键：否 | 可空：NO | 默认值：1 | 注释：无字段注释
+       - create_time | 类型：timestamp without time zone | 主键：否 | 可空：NO | 默认值：now() | 注释：无字段注释
+       - update_time | 类型：timestamp without time zone | 主键：否 | 可空：NO | 默认值：now() | 注释：无字段注释
+
+  #### 表名：user_faiss_info
+     表注释：用户对话FAISS向量库映射表（按对话拆分）
+     字段详情：
+       - faiss_id | 类型：bigint | 主键：是 | 可空：NO | 默认值：nextval('user_faiss_info_faiss_id_seq'::regclass) | 注释：无字段注释
+       - user_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - chat_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - faiss_file_path | 类型：character varying(512) | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - last_update_time | 类型：timestamp without time zone | 主键：否 | 可空：NO | 默认值：now() | 注释：无字段注释
+       - backup_file_path | 类型：character varying(512) | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+
+  #### 表名：user_upload_data
+     表注释：用户上传结构化数据表
+     字段详情：
+       - data_id | 类型：bigint | 主键：是 | 可空：NO | 默认值：nextval('user_upload_data_data_id_seq'::regclass) | 注释：无字段注释
+       - user_id | 类型：bigint | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - data_content | 类型：jsonb | 主键：否 | 可空：NO | 默认值：无默认值 | 注释：无字段注释
+       - sync_status | 类型：smallint | 主键：否 | 可空：NO | 默认值：0 | 注释：无字段注释
+       - sync_time | 类型：timestamp without time zone | 主键：否 | 可空：YES | 默认值：无默认值 | 注释：无字段注释
+       - create_time | 类型：timestamp without time zone | 主键：否 | 可空：NO | 默认值：now() | 注释：无字段注释
+       - update_time | 类型：timestamp without time zone | 主键：否 | 可空：NO | 默认值：now() | 注释：无字段注释
+
+## 使用说明
+1. 所有表引用需带上模式名，例如：SELECT * FROM public.表名;
+2. 字段注释包含核心业务含义，是编写SQL的重要依据；
+3. 若需修改数据，请先确认字段是否可为空、是否有默认值；
+4. 主键字段不可重复，且通常用于表关联。
