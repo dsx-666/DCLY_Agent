@@ -1,0 +1,17 @@
+{
+  "初级": [
+    {
+      "id": 1,
+      "problem": "查下咱医院有多少个科室？",
+      "sql": "SELECT COUNT(*) AS 科室数量 FROM departments_wards WHERE is_active = TRUE;"
+    }
+  ],
+  "中级": [
+    {
+      "id": 62,
+      "problem": "看看哪些医生的绩效高于科室平均绩效",
+      "sql": "SELECT s1.staff_id, s1.staff_name, s1.performance_score, s1.department_id FROM medical_staff s1 WHERE s1.performance_score > (SELECT AVG(performance_score) FROM medical_staff s2 WHERE s2.department_id = s1.department_id);"
+    }
+  ],
+  "高级": []
+}

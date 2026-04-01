@@ -1,0 +1,17 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda",
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "111778qb4bq84.vicp.fun",
+            "port": 17769,
+            "askForPassword": true,
+            "driver": "PostgreSQL",
+            "name": "agent_project",
+            "database": "agent_project",
+            "username": "userforagentproject"
+        }
+    ]
+}

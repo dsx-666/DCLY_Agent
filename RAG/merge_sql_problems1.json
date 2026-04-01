@@ -1,0 +1,38 @@
+{
+  "初级": [
+    {
+      "id": 1,
+      "problem": "列出所有姓王的客户信息",
+      "sql": "SELECT client_id, client_name, client_type, register_date FROM clients WHERE client_name LIKE '王%'"
+    }
+  ],
+  "中级": [
+    {
+      "id": 1,
+      "problem": "找出每个客户名下资产规模最大的组合",
+      "sql": "SELECT c.client_name, p.portfolio_code, p.current_value FROM clients c INNER JOIN portfolios p ON c.client_id = p.client_id WHERE p.current_value = (SELECT MAX(current_value) FROM portfolios WHERE client_id = c.client_id)"
+    },
+    {
+      "id": 2,
+      "problem": "计算每个产品被多少组合持有",
+      "sql": "SELECT pr.product_name, COUNT(DISTINCT h.portfolio_id) as portfolio_count FROM products pr LEFT JOIN holdings h ON pr.product_id = h.product_id GROUP BY pr.product_id, pr.product_name ORDER BY portfolio_count DESC"
+    },
+    {
+      "id": 140,
+      "problem": "找出所有夏普比率大于1的投资组合，并显示其当前市值和创建用户。",
+      "sql": "SELECT portfolio_code, current_value, create_user FROM portfolios WHERE risk_adjust_return > 1;"
+    }
+  ],
+  "高级": [
+    {
+      "id": 1,
+      "problem": "找出每个客户风险等级下，最大回撤超过其组合限制的组合",
+      "sql": "SELECT c.client_name, c.risk_level, p.portfolio_code, rm.max_drawdown, p.max_drawdown_limit FROM clients c JOIN portfolios p ON c.client_id = p.client_id JOIN risk_metrics rm ON p.portfolio_id = rm.portfolio_id WHERE rm.max_drawdown > p.max_drawdown_limit;"
+    },
+    {
+      "id": 2,
+      "problem": "统计每个部门的客户经理所管理客户的总交易金额",
+      "sql": "SELECT m.department_name, SUM(t.transaction_amount) AS total_trade_amount FROM managers m JOIN clients c ON m.manager_id = c.manager_id JOIN portfolios p ON c.client_id = p.client_id JOIN transactions t ON p.portfolio_id = t.portfolio_id GROUP BY m.department_name;"
+    }
+  ]
+}
