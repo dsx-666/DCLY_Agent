@@ -69,7 +69,10 @@ def flf(x):
     from ..model.LLM import llm
     from ..middleware.Tools import use_rag
     from ..prompt.Prompt import few_shot,choice_prompt,prompt_data,str_choice
-    rag = use_rag.run({"query": x["input"], "user_id": x["userid"]})
+    rag = use_rag.run({"query": x["input"], "user_id": x["userid"]}) 
+    # if rag == None:
+    rag = ""
+    
     important = get_user_datasource_file(x["userid"],x["chatid"])
     # 中间链
     chain = few_shot | llm

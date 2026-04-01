@@ -1,3 +1,4 @@
+from asyncio import run
 import os
 import tempfile
 from typing import Union
@@ -19,6 +20,7 @@ from psycopg2 import OperationalError
 from ..sql.SQLConfig import DB_CONFIG,conn
 from ..docker.Pool import my_env,use_my_env
 RAG_file_name = "faiss_rag"
+# from langchain_community.tools.tavily_search import TavilySearchTool
 
 from ..rag.RAG import *
 min_score = 0.3
@@ -182,7 +184,31 @@ def run_code(code: str) -> str:
     """
     # 防止原来的缓冲区有其他字符串
 
-    return use_my_env(my_env, "run_code", {"code": code})
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    stdout_buffer = io.StringIO()
+    stderr_buffer = io.StringIO()
+
+    try:
+        sys.stdout = stdout_buffer
+        sys.stderr = stderr_buffer
+
+        exec_globals: dict[str, Any] = {}
+        exec_locals: dict[str, Any] = {}
+
+        exec(code, exec_globals, exec_locals)
+
+        output = stdout_buffer.getvalue()
+        error = stderr_buffer.getvalue()
+
+        if error:
+            return f"\n{error}"
+        return f"\n{output}" or "无输出"
+    except Exception:
+        return "\n" + traceback.format_exc()
+    finally:
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
 
 
 @tool
@@ -394,8 +420,12 @@ tools = [
             use_rag,
             visualize,
             run_code,
-            # query_mysql
+            # query_mysql,
+            # TavilySearchTool(),
             ]
 
 # tools_name = [tool.func.__name__ for tool in middleware]
 
+if __name__ == "__main__":
+    print(run_code.run({"code":"print('hello world')"}))
+    

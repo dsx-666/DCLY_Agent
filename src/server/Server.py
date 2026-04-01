@@ -14,6 +14,8 @@ from scipy.sparse import dia_array
 import requests
 from ..server.AsyncLoop import lifespan
 from ..server.ServerFunction import *
+from ..server.Websocket import ws_instances,MyWebsocket,WS_URL
+
 # import os
 print("当前运行目录:", os.getcwd())
 data_dir_name = "data"
@@ -28,8 +30,8 @@ app.add_middleware(
 )
 
 from ..server.Websocket import MyWebsocket,WS_URL
-@app.post("/upload")
-def upload_file(data: dict):
+@app.post("/delete")
+def delete_file(data: dict):
     userid = str(data["userId"])
     file_name = data["sourceName"]
     chat_id = str(data["chatId"])
@@ -59,14 +61,16 @@ def download_file(dir_name:str,file_name:str):
 @app.api_route("/chat", methods=["GET", "POST"])
 def chat(data:dict):
     try:
-        ws = MyWebsocket(WS_URL,data["userId"],data["chatId"])
+        
+        ws_instances[f"{data["userId"]}_{data["chatId"]}"] = MyWebsocket(WS_URL,data["userId"],data["chatId"])
+        chat_history = get_chat_records_by_id(data["userId"],data["chatId"])
         chat = {
             "userId": str(data["userId"]),
             "chatId": str(data["chatId"]),
-            "input": data["content"],
+            "input": chat_history["input"],
             "history": [
-                f"{m['role']}:{m['content']}"
-                for m in data["historyMessages"]
+                f"user: {user},assistant: {assistant}"
+                for user,assistant in zip(chat_history["user"],chat_history["assistant"])
             ]
         }
 
@@ -75,11 +79,11 @@ def chat(data:dict):
             media_type="text/event-stream"
         )
     except Exception as e:
-        return f'data: {json.dumps({"type": "COMPLETE","message": {"content": f"{e}"}, "file_url": None,"rag": None}, ensure_ascii=False)}\n\n'
-@app.post("/get_info")
-def get_info(data: dict):
-    userid = data["userId"]
-    download_aly_file(userid)
+        if f"{data["userId"]}_{data["chatId"]}" in ws_instances:
+            ws_instances[f"{data["userId"]}_{data["chatId"]}"].close()
+        return f'data: {json.dumps({"type": "COMPLETE","think":False,"message": {"content": f"{e}"}, "file_url": None,"rag": None}, ensure_ascii=False)}\n\n'
+
+
 
 
 if __name__ == "__main__":

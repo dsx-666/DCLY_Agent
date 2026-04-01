@@ -1,11 +1,12 @@
 import json
-from Agent_use.src.file import file_config
+from ..file import file_config
 from langchain_core.messages import SystemMessage
 from langchain_core.prompts import PromptTemplate, FewShotPromptTemplate, ChatPromptTemplate, MessagesPlaceholder
 
 
 all_prompts = """
 强制规则（最高优先级，必须100%遵守）
+ 
  每次调用 `run_code` 工具时，生成的代码是一次性的代码，你后续不需要根据之前的代码来进行推测：
  每次调用 run_code 的代码执行环境是全新的，之前所用的所有变量、导入的包、资源都会被清空，你必须假设之前从未执行过任何代码；
  

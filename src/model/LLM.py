@@ -8,7 +8,7 @@ from langchain.schema import HumanMessage, SystemMessage
 
 llm_class = LLM(
     base_url="https://api.deepseek.com",
-    api_key=SecretStr("sk-9c52795f8658483f9761a6190deb8197"),
+    api_key=SecretStr("sk-6b6542f49e8f4f288a80ff489ec6b845"),
     model_name="deepseek-chat",
 )
 llm = llm_class.get_model()

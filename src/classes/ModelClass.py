@@ -2,7 +2,7 @@
 from collections.abc import Iterator, Iterable
 # langchain框架
 from langchain_core.language_models import BaseLanguageModel
-from langchain_core.messages import BaseMessage, BaseMessageChunk,AIMessage,AIMessageChunk
+from langchain_core.messages import BaseMessage, BaseMessageChunk,AIMessage,AIMessageChunk, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable
 from langchain_core.tools import BaseTool
@@ -41,6 +41,11 @@ class BaseLLM:
        llm:BaseLanguageModel
     )->dict:
         """ 修改agent配置 """
+    def change_prompt(self,
+        prompt:str
+    )->None:
+        """ 修改prompt """
+        pass
 
 class LLM(BaseLLM):
     def __init__(
@@ -119,6 +124,8 @@ class Agent(BaseLLM):
         llm:BaseLanguageModel,
         tools: Sequence[BaseTool],
         prompt:ChatPromptTemplate,
+        human_prompt:str = None,
+        title:str = None,
         **kwargs:dict[str, Any]
     )->None:
         """
@@ -137,7 +144,12 @@ class Agent(BaseLLM):
             tools = tools,
             prompt = prompt,
         )
+        self.human_prompt:str = human_prompt
+        if human_prompt:
+            self.prompt.messages.append(SystemMessage(content=human_prompt))
+        self.title:str = title
         self.kwargs:dict = kwargs
+    
     @override
     def change_llm_config(
         self,

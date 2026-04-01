@@ -12,6 +12,7 @@ import shutil
 from ..sql.SQLConfig import conn
 from concurrent.futures import ThreadPoolExecutor  # 多线程提速
 from urllib.parse import urlparse
+from langchain_core.messages import HumanMessage, AIMessage
 
 domain = "http://11ou939nk8818.vicp.fun:39858"
 
@@ -48,7 +49,7 @@ def download_file(file_url: str, save_name: str, save_dir):
         # 捕获网络请求异常，返回具体错误信息
         return f"文件下载失败：{str(e)}"
 
-def sum_fun(history:str):
+def sum_fun(history:list):
     """
         LLM的前置处理
         :param history: str 表示历史对话
@@ -99,18 +100,18 @@ def stream_to_user(chat:dict):
         }
 
         for chunk in chain.stream(qes):
-            yield f'data: {json.dumps({"type": "CONTINUE", "message": {"content": chunk.content}, "file_url": None, "rag": None}, ensure_ascii=False)}\n\n'
+            yield f'data: {json.dumps({"type": "CONTINUE", "think": False, "message": {"content": chunk.content}, "file_url": None, "rag": None}, ensure_ascii=False)}\n\n'
 
 
         result_url_list, rag_url_list = download_url()
 
-        yield f'data: {json.dumps({"type": "COMPLETE","message": {"content": ""}, "file_url": result_url_list,"rag": rag_url_list}, ensure_ascii=False)}\n\n'
+        yield f'data: {json.dumps({"type": "COMPLETE","think":False,"message": {"content": ""}, "file_url": result_url_list,"rag": rag_url_list}, ensure_ascii=False)}\n\n'
 
         delete_result_folder()
         return
 
     except Exception as e:
-        yield f'data: {json.dumps({"type": "COMPLETE","message": {"content": f"{e}"}, "file_url": None,"rag": None}, ensure_ascii=False)}\n\n'
+        yield f'data: {json.dumps({"type": "COMPLETE","think":False,"message": {"content": f"{e}"}, "file_url": None,"rag": None}, ensure_ascii=False)}\n\n'
 
         return
 
@@ -261,16 +262,72 @@ def download_aly_file(user_id, max_workers=3):
 
 
 
+def get_chat_records_by_id(user_id: str, chat_id: str) -> dict:
+    """
+    根据用户ID和对话ID查询public.user_chat_record表中的所有记录
+    :param user_id: 目标用户ID
+    :param chat_id: 目标对话ID
+    :return: list[dict] 对话记录列表，包含user和assistant的context
+    """
+    try:
+        # 检查数据库连接
+        if conn is None:
+            print("数据库连接失败")
+            return []
+        
+        # 连接数据库
+        cursor = conn.cursor()
+        
+        # 查询指定用户和对话的所有有效记录
+        query_sql = """
+                    SELECT record_id, content, role
+                    FROM public.user_chat_record
+                    WHERE user_id = %s
+                      AND chat_id = %s
+                    ORDER BY record_id ASC;
+                    """
+        cursor.execute(query_sql, (user_id, chat_id))
+        
+        # 获取结果
+        records = cursor.fetchall()
+        # print(records)
+        # 按role分组，根据record_id排序
+        user_contexts = []
+        assistant_contexts = []
+        
+        for record in records:
+            record_id, context, role = record
+            if role == 'user':
+                user_contexts.append(context)
+            elif role == 'assistant':
+                assistant_contexts.append(context)
+        
+        # 构建返回结果
+        result = {
+            "user":[ans for ans in user_contexts[:-1]],
+            "assistant": [ans for ans in assistant_contexts],
+            "input": user_contexts[-1]
+        }
+        
+        return result
+        
+    except psycopg2.Error as e:
+        print(f"数据库查询错误: {str(e)}")
+        return []
+    except Exception as e:
+        print(f"其他错误: {str(e)}")
+        return []
+    finally:
+        # 确保游标关闭
+        if 'cursor' in locals() and cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+
 if __name__ == "__main__":
     # 下载用户ID=1的所有阿里云盘数据源文件
-    li = get_user_datasource_by_uid(user_id=2)
-    route = "http://192.168.142.128:8888/download"
-    payload = {
-        "user_id": 2,
-        "datasource_list": li
-    }
-    headers = {"Content-Type": "application/json"}
-    response = requests.request("POST", route, headers=headers, json=payload)
+    print(get_chat_records_by_id(user_id="2", chat_id="3"))
 
 
 

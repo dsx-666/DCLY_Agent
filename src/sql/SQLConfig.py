@@ -4,13 +4,14 @@ from typing import List, Dict, Tuple, Optional
 import json
 SQL_HOST = "111778qb4bq84.vicp.fun"
 SQL_PORT = 17769
-SQL_PASSWORD = "lml20050523"
+SQL_PASSWORD = "123456"
 DATABASES = "agent_project"
+USER = "userforagentproject"
 # 数据库连接配置（替换为你的实际信息）
 DB_CONFIG = {
     "host": SQL_HOST,  # 主机
     "port": SQL_PORT,                     # 端口
-    "user": "postgreRoot",             # 数据库用户名
+    "user": USER,             # 数据库用户名
     "password": SQL_PASSWORD,       # 数据库密码
     "database": DATABASES             # 数据库名
 }

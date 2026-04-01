@@ -13,10 +13,20 @@ docs = []
 d_name = "rag"
 
 from sentence_transformers import SentenceTransformer
+import os
+
+# 使用绝对路径
+MODEL_PATH = os.path.abspath("text2vec-base-chinese")
+# print(f"模型路径: {MODEL_PATH}")
+
+# 使用本地的safetensors格式模型文件
+# print("开始加载模型...")
 model = SentenceTransformer(
-    r"local_text2vec-base-chinese",
-    local_files_only=True
+    MODEL_PATH,
+    local_files_only=True,
+    trust_remote_code=True
 )
+# print("模型加载成功！")
 
 class My_Embeddings(Embeddings):
     def embed_documents(self, texts):

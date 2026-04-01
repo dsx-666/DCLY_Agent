@@ -12,10 +12,10 @@ from ..middleware.Tools import add_rag
 from ..chain.ChainFunction import ask_change_plan
 from ..server.Websocket import *
 from ..server.AsyncLoop import global_loop
-
+from ..server.Websocket import ws_instances
 # 改写AgentExecutor类
 from ..server.Websocket import MyWebsocket,WS_URL
-ws = MyWebsocket(WS_URL,1,1)
+
 class CustomExecutor(AgentExecutor):
     max_rag_index:int =  Field(-1, description="RAG数量的最大值")
     max_index: int = Field(-1, description="工具数量的最大值")
@@ -77,6 +77,7 @@ class CustomExecutor(AgentExecutor):
                 # inc = input()
 
         else:
+            
             fake_action = AgentAction(
                 tool = "_summary_",
                 tool_input = {},
@@ -84,6 +85,7 @@ class CustomExecutor(AgentExecutor):
             )
             intermediate_steps.append((fake_action, "历史记录"))
             self.step = 1
+            
 
         self.last_intermediate_steps = len(intermediate_steps)
 

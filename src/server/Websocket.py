@@ -62,3 +62,4 @@ class MyWebsocket:
             await self.websocket.close()
             self.websocket = None  # 关闭后清空连接对象
 
+ws_instances = {}
